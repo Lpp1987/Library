@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+    <h2>{% trans 'Homepage' %}</h2>
+{% endblock %}
+
+{% block content %}
+    <p>{% trans 'Hello' %} {{ user.username }}!</p>
+{% endblock %}

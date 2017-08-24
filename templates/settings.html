@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+    <h2>{% trans 'Settings' %}</h2>
+{% endblock %}
+
+
+{% block content %}
+
+<h3>Facebook</h3>
+{% if facebook_login %}
+    <p>{% trans 'Connected as ' %}<a href="https://facebook.com/{{ facebook_login.extra_data.id }}/" target="_blank">{{ user }}</a></p>
+    {% if can_disconnect %}
+        <form method="post" action="{% url 'social:disconnect' 'facebook' %}">
+        {% csrf_token %}
+            <button type="submit">{% trans 'Disconnect from Facebook' %}</button>
+        </form>
+    {% else %}
+        <button type="button" disabled>{% trans 'Disconnect from Facebook' %}</button>
+        <p style="color: red">{% trans 'You must' %} <a href="{% url 'password' %}">{% trans 'define a password' %}</a> {% trans 'for your account before disconnecting from Facebook.' %}</p>
+    {% endif %}
+{% else %}
+    <a href="{% url 'social:begin' 'facebook' %}">{% trans 'Connect to Facebook' %}</a>
+{% endif %}
+
+{% endblock %}
