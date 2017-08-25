@@ -1,18 +1,13 @@
+from __future__ import unicode_literals
+
+from django.contrib.auth.models import PermissionsMixin
+from django.contrib.auth.base_user import AbstractBaseUser
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-
-class Author(models.Model):
-    first_name = models.CharField(_('First name'), max_length=255)
-    last_name = models.CharField(_('Last name'), max_length=255)
-
-    class Meta:
-        verbose_name = _('Author')
-        verbose_name_plural = _('Authors')
-
-    def __str__(self):
-        return '{}, {}'.format(self.last_name, self.first_name)
+from .managers import UserManager
 
 
 def isbn_validator(isbn):
@@ -44,6 +39,56 @@ def isbn_validator(isbn):
             raise ValidationError(_('ISBN must contain 10 or 13 digits'), code='10_or_13')
     else:
         raise ValidationError(_('ISBN contains only digits'), code='illegal_characters')
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+    email = models.EmailField(_('Email address'), unique=True)
+    username = models.CharField(_('User name'), max_length=255, null=True, blank=True)
+    first_name = models.CharField(_('First name'), max_length=32, blank=True)
+    last_name = models.CharField(_('Last name'), max_length=32, blank=True)
+    date_joined = models.DateTimeField(_('Date joined'), auto_now_add=True)
+    is_active = models.BooleanField(_('Active'), default=True)
+    is_staff = models.BooleanField(_('Staff'), default=False)
+    profile_picture = models.ImageField(
+        _('Profile picture'),
+        upload_to='users/pictures/profile',
+        null=True,
+        blank=True
+    )
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    class Meta:
+        verbose_name = _('user')
+        verbose_name_plural = _('users')
+
+    def __str__(self):
+        return '{} ({})'.format(self.get_full_name(), self.email)
+
+    def get_full_name(self):
+        full_name = '{} {}'.format(self.first_name, self.last_name)
+        return full_name.strip()
+
+    def get_short_name(self):
+        return self.first_name
+
+    def email_user(self, subject, message, from_email=None, **kwargs):
+        send_mail(subject, message, from_email, [self.email], **kwargs)
+
+
+class Author(models.Model):
+    first_name = models.CharField(_('First name'), max_length=255)
+    last_name = models.CharField(_('Last name'), max_length=255)
+
+    class Meta:
+        verbose_name = _('Author')
+        verbose_name_plural = _('Authors')
+
+    def __str__(self):
+        return '{}, {}'.format(self.last_name, self.first_name)
 
 
 class Book(models.Model):
@@ -84,6 +129,3 @@ class Book(models.Model):
             cover = _('cover unavailable')
 
         return '{} - {} - {}'.format(self.title, authors_clean, cover)
-
-
-

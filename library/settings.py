@@ -113,6 +113,7 @@ SOCIAL_AUTH_RAISE_EXCEPTIONS = False
 
 WSGI_APPLICATION = 'library.wsgi.application'
 
+AUTH_USER_MODEL = 'books.User'
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases

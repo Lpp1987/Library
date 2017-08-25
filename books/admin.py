@@ -1,7 +1,6 @@
 from django.contrib import admin
 
-# Register your models here.
-from books.models import Author, Book
+from books.models import Author, Book, User
 
 
 @admin.register(Author)
@@ -12,4 +11,9 @@ class AuthorAdmin(admin.ModelAdmin):
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
     ordering = ['title', 'author']
+    pass
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    ordering = ['-is_staff']
     pass
