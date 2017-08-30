@@ -10,6 +10,10 @@ from django.utils.translation import ugettext_lazy as _
 from .managers import UserManager
 
 
+def user_avatar_path(instance, filename):
+    return 'users/user_{}/{}'.format(instance.id, filename)
+
+
 def isbn_validator(isbn):
     control = int(isbn[-1])
     i = 1
@@ -24,34 +28,47 @@ def isbn_validator(isbn):
                     isbn_list.append((int(char)*3))
                 i += 1
             if control != (((10 - sum(isbn_list)) % 10) % 10):
-                raise ValidationError(_('ISBN is not valid'), code='not_valid')
+                raise ValidationError(_('ISBN is not valid'), code='ISBN_not_valid')
         elif len(isbn) == 10:
             for char in isbn[:-1]:
                 isbn_list.append((int(char) * i))
                 i += 1
             if control != (sum(isbn_list) % 11):
-                raise ValidationError(_('ISBN is not valid'), code='not_valid')
+                raise ValidationError(_('ISBN is not valid'), code='ISBN_not_valid')
         elif len(isbn) < 10:
-            raise ValidationError(_('ISBN is too short'), code='too_short')
+            raise ValidationError(_('ISBN is too short'), code='ISBN_too_short')
         elif len(isbn) > 13:
-            raise ValidationError(_('ISBN is too long'), code='too_long')
+            raise ValidationError(_('ISBN is too long'), code='ISBN_too_long')
         elif 10 < len(isbn) < 13:
-            raise ValidationError(_('ISBN must contain 10 or 13 digits'), code='10_or_13')
+            raise ValidationError(
+                _('ISBN must contain 10 or 13 digits'),
+                code='ISBN_10_or_13'
+            )
     else:
-        raise ValidationError(_('ISBN contains only digits'), code='illegal_characters')
+        raise ValidationError(
+            _('ISBN contains only digits'),
+            code='ISBN_illegal_characters'
+        )
 
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('Email address'), unique=True)
     username = models.CharField(_('User name'), max_length=255, null=True, blank=True)
-    first_name = models.CharField(_('First name'), max_length=32, blank=True)
-    last_name = models.CharField(_('Last name'), max_length=32, blank=True)
+    first_name = models.CharField(_('First name'), max_length=32, null=True, blank=True)
+    last_name = models.CharField(_('Last name'), max_length=32, null=True, blank=True)
     date_joined = models.DateTimeField(_('Date joined'), auto_now_add=True)
     is_active = models.BooleanField(_('Active'), default=True)
     is_staff = models.BooleanField(_('Staff'), default=False)
-    profile_picture = models.ImageField(
+    avatar = models.ImageField(
         _('Profile picture'),
-        upload_to='users/pictures/profile',
+        upload_to=user_avatar_path,
+        null=True,
+        blank=True
+    )
+
+    facebook_email = models.EmailField(_('Facebook email address'), null=True, blank=True)
+    facebook_avatar = models.URLField(
+        _('Facebook profile picture'),
         null=True,
         blank=True
     )
