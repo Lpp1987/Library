@@ -20,13 +20,17 @@ from django.contrib import admin
 from django.contrib.auth.views import login, logout
 from django.views.generic import TemplateView
 
-from books.views import settings_view, password_view, register, UserUpdateView
+from books.views import settings_view, password_view, register, UserUpdateView, \
+    account_activation_sent, activate
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
     url(r'^$', TemplateView.as_view(template_name='home.html'), name='home'),
     url(r'^register/$', register, name='register'),
+    url(r'^account_activation_sent/$', account_activation_sent, name='account_activation_sent'),
+    url(r'^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,'
+        r'13}-[0-9A-Za-z]{1,20})/$', activate, name='activate'),
     url(r'^user/update/(?P<pk>(\d)+)/$', UserUpdateView.as_view(), name='user-update'),
     url(r'^login/$', login, name='login'),
     url(r'^logout/$', logout, name='logout'),

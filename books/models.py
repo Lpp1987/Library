@@ -5,6 +5,8 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 
 from .managers import UserManager
@@ -146,3 +148,21 @@ class Book(models.Model):
             cover = _('cover unavailable')
 
         return '{} - {} - {}'.format(self.title, authors_clean, cover)
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    email_confirmed = models.BooleanField(default=False)
+
+
+@receiver(post_save, sender=User)
+def update_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+    instance.profile.save()
+
+
+class Shelf(models.Model):
+    name = models.CharField(_('Name'), max_length=255)
+    profile = models.ForeignKey(Profile)
+    books = models.ManyToManyField(Book, verbose_name=_('Books'))
